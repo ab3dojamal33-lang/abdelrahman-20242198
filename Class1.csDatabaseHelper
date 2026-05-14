@@ -1,0 +1,93 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Windows.Forms;
+
+namespace BrazilianECommerceApp
+{
+    /// <summary>
+    /// Helper class to manage database connections and execute queries.
+    /// </summary>
+    public class DatabaseHelper
+    {
+        // Connection string as requested
+        private readonly string connectionString = "Server=.;Database=Brazilian E-Comerce;Integrated Security=True";
+
+        /// <summary>
+        /// Executes a non-query command (INSERT, UPDATE, DELETE).
+        /// </summary>
+        /// <param name="query">The SQL query to execute.</param>
+        /// <param name="parameters">An array of SqlParameters.</param>
+        /// <returns>True if the operation was successful, otherwise false.</returns>
+        public bool ExecuteNonQuery(string query, SqlParameter[] parameters)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    try
+                    {
+                        if (parameters != null)
+                        {
+                            command.Parameters.AddRange(parameters);
+                        }
+
+                        connection.Open();
+                        int rowsAffected = command.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                    catch (SqlException ex)
+                    {
+                        MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Executes a query and returns the results as a DataTable.
+        /// </summary>
+        /// <param name="query">The SQL SELECT query to execute.</param>
+        /// <param name="parameters">Optional array of SqlParameters.</param>
+        /// <returns>A DataTable containing the results, or null if an error occurred.</returns>
+        public DataTable ExecuteDataTable(string query, SqlParameter[] parameters = null)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    try
+                    {
+                        if (parameters != null)
+                        {
+                            command.Parameters.AddRange(parameters);
+                        }
+
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                        {
+                            DataTable dataTable = new DataTable();
+                            adapter.Fill(dataTable);
+                            return dataTable;
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return null;
+                    }
+                }
+            }
+        }
+    }
+}
